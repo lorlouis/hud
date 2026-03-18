@@ -28,7 +28,7 @@
 #![allow(unused_unsafe)]
 
 use aya_ebpf::{
-    helpers::{bpf_get_current_pid_tgid, bpf_ktime_get_ns},
+    helpers::{bpf_get_current_pid_tgid, bpf_get_smp_processor_id, bpf_ktime_get_ns},
     macros::{map, perf_event, tracepoint, uprobe},
     maps::{HashMap, RingBuf, StackTrace},
     programs::{PerfEventContext, ProbeContext, TracePointContext},
@@ -301,11 +301,9 @@ fn get_worker_id(tid: u32) -> u32 {
     unsafe { TOKIO_WORKER_THREADS.get(&tid).map(|info| info.worker_id).unwrap_or(u32::MAX) }
 }
 
-// Helper: Get CPU ID (using aya's helper when available)
+// Helper: Get CPU ID from the BPF helper
 fn get_cpu_id() -> u32 {
-    // aya-ebpf doesn't expose bpf_get_smp_processor_id directly yet
-    // For now, return 0 (we can add this later with raw bpf call)
-    0
+    unsafe { bpf_get_smp_processor_id() }
 }
 
 /// CPU Sampling Profiler - Captures stack traces via perf_event
