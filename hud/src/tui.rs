@@ -683,6 +683,13 @@ fn format_frame_location(frame: &crate::trace_data::StackFrame) -> String {
 /// Copy hotspot info to system clipboard.
 fn yank_hotspot_to_clipboard(hotspot: &crate::analysis::FunctionHotspot) -> Result<()> {
     let text = format_hotspot_for_yank(hotspot);
+
+    {
+        let mut file = std::fs::File::create("hotspot.txt").unwrap();
+        use std::io::Write as _;
+        write!(&mut file, "{}", text).unwrap();
+    }
+
     let mut clipboard = arboard::Clipboard::new()?;
     clipboard.set_text(&text)?;
     Ok(())
